@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="RectangleShape2D" id=51]
+extents = Vector2( 16, 8 )
+
+[node name="LadderTopStand" type="StaticBody2D"]
+collision_layer = 2147483649
+
+[node name="LadderTop" type="CollisionShape2D" parent="."]
+shape = SubResource( 51 )
+one_way_collision = true
+
+[node name="Sprite" type="Sprite" parent="."]
