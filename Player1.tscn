@@ -4,7 +4,7 @@
 [ext_resource path="res://Sprites/Player/Idle0.png" type="Texture" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 8, 15 )
+extents = Vector2( 4, 15 )
 
 [node name="Player1" type="KinematicBody2D"]
 collision_layer = 2

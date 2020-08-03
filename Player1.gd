@@ -3,10 +3,9 @@ extends KinematicBody2D
 var velocity = Vector2.ZERO
 
 const UP = Vector2(0,-1)
-const H_SPEED = 100
-const V_SPEED = 100
+const H_SPEED = 150
+const V_SPEED = 150
 const ACCEL = 25
-const GROUND_FRICTION = 100
 const GRAVITY = 200
 
 
@@ -24,6 +23,8 @@ var falling = false
 
 var onRope = false
 
+signal playerCollidedWithTile
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	print("Player1._ready()")
@@ -31,8 +32,6 @@ func _ready():
 #Place an underscore ifo parameters if they're not being used
 #and that gets rid of warnings for unused parameters
 func _physics_process(_delta):
-	
-	handleFocusBeamInput()
 	
 	#If standing in front of the ladder but NOT on it
 	if ifoLadder:
@@ -87,10 +86,10 @@ func _physics_process(_delta):
 		if !is_on_floor():
 			pass
 	
-	#Experimentation
-	
 	#Apply the motion vector to the results of processing w/move_and_slide
 	motion = move_and_slide(motion,UP)
+	
+	handleFocusBeamInput()
 	
 	#We fell through ladder top (which is on the ladder layer at position 1)
 	#and we want to reset the ability to stand on it again
@@ -110,10 +109,20 @@ func _physics_process(_delta):
 #desctructable ground tiles
 func handleFocusBeamInput():
 	if Input.is_action_just_pressed("ui_focus_prev"):
-		print("firedRight")
+		emitFiredSignal("right")
 		
 	elif Input.is_action_just_pressed("ui_focus_next"):
-		print("firedLeft")
+		emitFiredSignal("left")
+
+#Experimenting with specific tile collision detection
+#the goal for now should be to light up the tiles to the right and left
+#based on where the focusBeam would be pointing
+func emitFiredSignal(direction):
+	print("emitting fireSignal %s. Need to deal with this."%direction)
+	for i in get_slide_count():
+		var collision = get_slide_collision(i)
+		if(collision): 
+			emit_signal("playerCollidedWithTile",collision,direction)
 
 func _on_Ladder_body_shape_entered(_body_id, body, _body_shape, _area_shape):
 	if self.name == body.name:
@@ -126,8 +135,6 @@ func _on_Ladder_body_shape_exited(_body_id, body, _body_shape, _area_shape):
 
 func _on_GrabbingRope_body_shape_entered(_body_id, _body, _body_shape, _area_shape):
 	onRope = true
-	print("grabbingRope")
 
 func _on_GrabbingRope_body_shape_exited(_body_id, _body, _body_shape, _area_shape):
 	onRope = false
-	print("stopped grabbingRope")
