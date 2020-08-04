@@ -23,7 +23,7 @@ var falling = false
 
 var onRope = false
 
-signal playerCollidedWithTile
+signal player_fired_focus_beam
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -89,7 +89,11 @@ func _physics_process(_delta):
 	#Apply the motion vector to the results of processing w/move_and_slide
 	motion = move_and_slide(motion,UP)
 	
-	handleFocusBeamInput()
+	#handle firing left or right
+	if Input.is_action_just_pressed("ui_focus_prev"):
+		emit_signal("player_fired_focus_beam",getSlideCollisions(),"right")
+	elif Input.is_action_just_pressed("ui_focus_next"):
+		emit_signal("player_fired_focus_beam",getSlideCollisions(),"left")
 	
 	#We fell through ladder top (which is on the ladder layer at position 1)
 	#and we want to reset the ability to stand on it again
@@ -107,22 +111,39 @@ func _physics_process(_delta):
 #Mapped to Q and E, these are fire buttons for disintegrating the ground
 #to the left and the right. Doesn't work on all tiles, usually only
 #desctructable ground tiles
-func handleFocusBeamInput():
-	if Input.is_action_just_pressed("ui_focus_prev"):
-		emitFiredSignal("right")
-		
-	elif Input.is_action_just_pressed("ui_focus_next"):
-		emitFiredSignal("left")
+#Confirmed via testing these only trigger once, but emitFiredSignal
+#picks up two collisions and therefore emits two signals
+#func handleFocusBeamInput(direction):
+#		emit_signal("player_fired_focus_beam",collision,direction)
 
 #Experimenting with specific tile collision detection
 #the goal for now should be to light up the tiles to the right and left
 #based on where the focusBeam would be pointing
-func emitFiredSignal(direction):
-	print("emitting fireSignal %s. Need to deal with this."%direction)
+#func emitFiredSignal(direction):
+#	var collision = get_slide_collision(0)
+#	if(collision):
+		
+			
+#	for i in get_slide_count():
+#		var collision = get_slide_collision(i)
+#		print("I collided with ", collision.collider.name)
+#		if(collision):
+#			print("emitting fire signal")
+#			emit_signal("playerCollidedWithTile",collision,direction)
+
+#A note on get_slide_count(), this will display the number of collisions
+#calculated at the last call to move_and_slide. The number of collisions
+#can be of course, greater than 1 for example, in a corner, but if the player
+#CHANGES DIRECTION, then a collision will be counted with the same object.
+#So in the case of FLAT GROUND moving left and right will generate multiple
+#collisions. Then we only need to calculate the first collision.
+func getSlideCollisions():
+	var collisions = []
+	var numCollisions = get_slide_count()
+	print("collisions detected %s"%numCollisions)
 	for i in get_slide_count():
-		var collision = get_slide_collision(i)
-		if(collision): 
-			emit_signal("playerCollidedWithTile",collision,direction)
+		collisions.append(get_slide_collision(i))
+	return collisions
 
 func _on_Ladder_body_shape_entered(_body_id, body, _body_shape, _area_shape):
 	if self.name == body.name:
