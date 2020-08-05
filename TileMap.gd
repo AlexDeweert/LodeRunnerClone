@@ -36,15 +36,17 @@ func _process(_delta):
 #then we could reference ANY object using the dollar sign operator
 #but this also works.
 
-## TODO: Should only be able to destroy tiles if there is space above it,
-## that is, the only time we should be able to destroy a tile is if it's VOID
-## above it (maybe -1?)
+## TODO: Ability to destroy tiles from 
+## 1) tops of ladders
+## 2) bottoms of ladders
+## 3) ropes (to get this to work we might have to make Area2D the parent for the ropes, not static body
 func _on_Player_fired_focus_beam(collisions,direction):
 #	for collision in collisions:
 		#We should check to make sure the player isn't standing on it
 		#somehow
 	var collision = collisions[0] if collisions else false
 	if collision and collision.collider is TileMap:
+		print("")
 		print("fired in direction %s"%direction)
 		var player_tile_pos = collision.collider.world_to_map(player.position)
 		print("player_tile_pos.x: %s"%player_tile_pos.x)
@@ -52,11 +54,18 @@ func _on_Player_fired_focus_beam(collisions,direction):
 		print("tile pos %s"%tile_pos)
 		tile_pos.x += -1 if direction == "left" else 1
 		
+		#Need to calculate tile ABOVE the tile we want to destroy to ensure it's a void tile (ie -1)
+		var tile_above_pos = tile_pos
+		tile_above_pos.y -= 1
+		var tile_above_idx = collision.collider.get_cellv(tile_above_pos)
+		print("tile_above_idx == %s"%tile_above_idx)
 		#tile_idx is an index of a tile given by a vector2, in this case, tile_pos which
 		#is the calculated vector2 of the tile under the character to the left or right
 		var tile_idx = collision.collider.get_cellv(tile_pos)
-		if tile_idx != 8:
+		if tile_idx != 8 :
 			print("can't destroy tile to the %s, it's not a destructable type, it's idx is %s"%[direction, tile_idx])
+		elif tile_above_idx != -1:
+			print("can't destroy tile: the tile ABOVE it needs to be empty, which it is not. It's type %s"%tile_above_idx)
 		else:
 			#tile here, is a vector2 assigned the return val of get_cell_autotile_coord
 			#according to Docs: Returns the coordinate (subtile column and row)
@@ -70,7 +79,10 @@ func _on_Player_fired_focus_beam(collisions,direction):
 			#2) using tile_idx (which IS the spritesheet index, or the atlas section index); and
 			#3) sets it to the value on THAT spritesheet/atlas pointed to by the Vector2 in question.
 			#both tile and the Vector2 in question will be sub-coordinates of the spritesheet.
-			self.set_cell(tile_pos.x,tile_pos.y, tile_idx, false,false,false,Vector2(int(tile.x+1)%7,tile.y))
+			self.set_cell(tile_pos.x,tile_pos.y, tile_idx, false,false,false,Vector2(int(tile.x+1)%7,tile.y))			
+	elif collisions.size() > 0:
+		for collis in collisions:
+			print("collider is NOT of type tilemap. %s"%collis.collider.position)
 
 
 func _on_Timer_timeout():

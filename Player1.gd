@@ -57,7 +57,7 @@ func _physics_process(_delta):
 	#If we're not in the front of a ladder but we're pressing DOWN
 	#then we must allow our player to drop through the top of a ladder
 	#since players can stand on top of a ladder once they reach the top
-	elif Input.is_action_pressed("ui_down"):
+	if Input.is_action_pressed("ui_down"):
 		set_collision_layer_bit(1,false)
 		if onRope:
 			set_collision_layer_bit(2,false)
@@ -80,6 +80,8 @@ func _physics_process(_delta):
 	# Only apply gravity when we're not holding on to a ladder
 	# also if we fall through the ladder stand (on top) we also
 	# need to catch the ladder, so if we're ifo ladder no grav
+#	if !onLadder:
+	#This used to fix some kind of bug but we can't probably remove
 	if !onLadder and !ifoLadder:
 		motion.y = GRAVITY
 		#falling, could set a var here for later
