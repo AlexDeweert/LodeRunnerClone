@@ -79,12 +79,16 @@ func _on_Player_fired_focus_beam(collisions,direction):
 			#2) using tile_idx (which IS the spritesheet index, or the atlas section index); and
 			#3) sets it to the value on THAT spritesheet/atlas pointed to by the Vector2 in question.
 			#both tile and the Vector2 in question will be sub-coordinates of the spritesheet.
-			self.set_cell(tile_pos.x,tile_pos.y, tile_idx, false,false,false,Vector2(int(tile.x+1)%7,tile.y))			
+			for i in range(0,6):
+				var t = Timer.new()
+				t.set_wait_time(0.05)
+				t.set_one_shot(true)
+				self.add_child(t)
+				t.start()
+				yield(t, "timeout")
+				tile = get_cell_autotile_coord(tile_pos.x,tile_pos.y)
+				self.set_cell(tile_pos.x,tile_pos.y, tile_idx, false,false,false,Vector2(tile.x+1,tile.y))			
+			self.set_cell(tile_pos.x,tile_pos.y, -1)			
 	elif collisions.size() > 0:
 		for collis in collisions:
 			print("collider is NOT of type tilemap. %s"%collis.collider.position)
-
-
-func _on_Timer_timeout():
-	print("tileMap timer timed out")
-	timer = true
