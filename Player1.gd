@@ -20,19 +20,21 @@ var ifoLadder = false
 var onLadder = false
 var onLadderTop = false
 var falling = false
-
+var rand = false
 var onRope = false
+var midLadder = false
 
-signal player_fired_focus_beam
+signal player_fired_focus_beam_right
+signal player_fired_focus_beam_left
+
+### TODO: Center the player sprite when onLadder and climbing UP
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	print("Player1._ready()")
 
-#Place an underscore ifo parameters if they're not being used
-#and that gets rid of warnings for unused parameters
+# TODO: Figure out a way to crush the player.
 func _physics_process(_delta):
-	
 	#If standing in front of the ladder but NOT on it
 	if ifoLadder:
 		#Pressing down we put the player on the ladder and start moving down
@@ -58,8 +60,10 @@ func _physics_process(_delta):
 	#then we must allow our player to drop through the top of a ladder
 	#since players can stand on top of a ladder once they reach the top
 	if Input.is_action_pressed("ui_down"):
+		#ladder top stands
 		set_collision_layer_bit(1,false)
 		if onRope:
+			#rope walks
 			set_collision_layer_bit(2,false)
 
 	#If the player is on the floor OR on the ladder they can move left and right
@@ -76,26 +80,29 @@ func _physics_process(_delta):
 	
 	else:
 		motion.x = 0
-	
+
 	# Only apply gravity when we're not holding on to a ladder
 	# also if we fall through the ladder stand (on top) we also
 	# need to catch the ladder, so if we're ifo ladder no grav
-#	if !onLadder:
+#	if !onLadder and !ifoLadder:
 	#This used to fix some kind of bug but we can't probably remove
-	if !onLadder and !ifoLadder:
+	if !onLadder and !midLadder:
 		motion.y = GRAVITY
 		#falling, could set a var here for later
 		if !is_on_floor():
 			pass
-	
+
 	#Apply the motion vector to the results of processing w/move_and_slide
 	motion = move_and_slide(motion,UP)
 	
 	#handle firing left or right
 	if Input.is_action_just_pressed("ui_focus_prev"):
-		emit_signal("player_fired_focus_beam",getSlideCollisions(),"right")
+		if isApproxWithinTileCenter():
+			emit_signal("player_fired_focus_beam_right")
+
 	elif Input.is_action_just_pressed("ui_focus_next"):
-		emit_signal("player_fired_focus_beam",getSlideCollisions(),"left")
+		if isApproxWithinTileCenter():
+			emit_signal("player_fired_focus_beam_left")
 	
 	#We fell through ladder top (which is on the ladder layer at position 1)
 	#and we want to reset the ability to stand on it again
@@ -110,29 +117,6 @@ func _physics_process(_delta):
 	if is_on_floor():
 		set_collision_layer_bit(2,true)
 
-#Mapped to Q and E, these are fire buttons for disintegrating the ground
-#to the left and the right. Doesn't work on all tiles, usually only
-#desctructable ground tiles
-#Confirmed via testing these only trigger once, but emitFiredSignal
-#picks up two collisions and therefore emits two signals
-#func handleFocusBeamInput(direction):
-#		emit_signal("player_fired_focus_beam",collision,direction)
-
-#Experimenting with specific tile collision detection
-#the goal for now should be to light up the tiles to the right and left
-#based on where the focusBeam would be pointing
-#func emitFiredSignal(direction):
-#	var collision = get_slide_collision(0)
-#	if(collision):
-		
-			
-#	for i in get_slide_count():
-#		var collision = get_slide_collision(i)
-#		print("I collided with ", collision.collider.name)
-#		if(collision):
-#			print("emitting fire signal")
-#			emit_signal("playerCollidedWithTile",collision,direction)
-
 #A note on get_slide_count(), this will display the number of collisions
 #calculated at the last call to move_and_slide. The number of collisions
 #can be of course, greater than 1 for example, in a corner, but if the player
@@ -140,16 +124,27 @@ func _physics_process(_delta):
 #So in the case of FLAT GROUND moving left and right will generate multiple
 #collisions. Then we only need to calculate the first collision.
 func getSlideCollisions():
-	var collisions = []
+#	var collisions = []
 	var numCollisions = get_slide_count()
-	print("collisions detected %s"%numCollisions)
-	for i in get_slide_count():
-		collisions.append(get_slide_collision(i))
-	return collisions
+#	print("collisions detected %s"%numCollisions)
+#	for i in get_slide_count():
+#		collisions.append(get_slide_collision(i))
+	return numCollisions
 
-func _on_Ladder_body_shape_entered(_body_id, body, _body_shape, _area_shape):
+#This makes it so the player can't disintegrate the ground unless they are
+#reasonably within the center of a tile. Prevents disintegrating a tile that
+#that the player is standing on
+func isApproxWithinTileCenter():
+	var result = fmod(position.x,32)
+	result -= 16.0
+	result = abs(result)
+	if result <= 16: return true
+	return false
+
+func _on_Ladder_body_shape_entered(_body_id, body, _body_shape, area_shape):
 	if self.name == body.name:
 		ifoLadder = true
+		print(area_shape)
 	
 func _on_Ladder_body_shape_exited(_body_id, body, _body_shape, _area_shape):
 	if self.name == body.name:
@@ -161,3 +156,12 @@ func _on_GrabbingRope_body_shape_entered(_body_id, _body, _body_shape, _area_sha
 
 func _on_GrabbingRope_body_shape_exited(_body_id, _body, _body_shape, _area_shape):
 	onRope = false
+
+
+func _on_MidLadder_body_shape_entered(body_id, body, body_shape, area_shape):
+	if self.name == body.name:
+		midLadder = true
+
+func _on_MidLadder_body_shape_exited(body_id, body, body_shape, area_shape):
+	if self.name == body.name:
+		midLadder = false
