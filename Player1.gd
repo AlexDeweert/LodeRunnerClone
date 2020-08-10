@@ -33,7 +33,6 @@ signal player_fired_focus_beam_left
 func _ready():
 	print("Player1._ready()")
 
-# TODO: Figure out a way to crush the player.
 func _physics_process(_delta):
 	#If standing in front of the ladder but NOT on it
 	if ifoLadder:
@@ -90,7 +89,7 @@ func _physics_process(_delta):
 		motion.y = GRAVITY
 		#falling, could set a var here for later
 		if !is_on_floor():
-			pass
+			falling = true
 
 	#Apply the motion vector to the results of processing w/move_and_slide
 	motion = move_and_slide(motion,UP)
@@ -109,12 +108,16 @@ func _physics_process(_delta):
 	if !get_collision_layer_bit(1):
 		set_collision_layer_bit(1,true)
 	
-	#We're resetting the rope "trap door" so that they can re-fall
-	#through after the collision layer bit is reset. This works for now
-	#but this won't work if the player falls from rope-to-rope. Instead
-	#we might need to do a mid-air reset IF the player is falling AND 
-	#not onRope
+	#If we're on the floor clearly we're not falling.
+	#at the moment this is only used to test if we need to
+	#reset the rope "trap door", useful to grab the rope again
+	#if dropping from rope to rope.
 	if is_on_floor():
+		falling = false
+	
+	#We're resetting the rope "trap door" so that they can re-fall
+	#through after the collision layer bit is reset.
+	if falling:
 		set_collision_layer_bit(2,true)
 
 #A note on get_slide_count(), this will display the number of collisions
@@ -144,7 +147,6 @@ func isApproxWithinTileCenter():
 func _on_Ladder_body_shape_entered(_body_id, body, _body_shape, area_shape):
 	if self.name == body.name:
 		ifoLadder = true
-		print(area_shape)
 	
 func _on_Ladder_body_shape_exited(_body_id, body, _body_shape, _area_shape):
 	if self.name == body.name:
@@ -158,10 +160,10 @@ func _on_GrabbingRope_body_shape_exited(_body_id, _body, _body_shape, _area_shap
 	onRope = false
 
 
-func _on_MidLadder_body_shape_entered(body_id, body, body_shape, area_shape):
+func _on_MidLadder_body_shape_entered(_body_id, body, _body_shape, _area_shape):
 	if self.name == body.name:
 		midLadder = true
 
-func _on_MidLadder_body_shape_exited(body_id, body, body_shape, area_shape):
+func _on_MidLadder_body_shape_exited(_body_id, body, _body_shape, _area_shape):
 	if self.name == body.name:
 		midLadder = false

@@ -1,5 +1,8 @@
 extends TileMap
 
+#TODO: Tile below destroyed tiles don't disintegrate anymore
+#Need to fix that, maybe set the value to -1 again.
+
 func disintegrateTile(tile_pos):
 	print("collision with tile at %s"%tile_pos)
 	
@@ -45,8 +48,8 @@ func disintegrateTile(tile_pos):
 				tile = get_cell_autotile_coord(tile_pos.x,tile_pos.y)
 				set_cell(tile_pos.x,tile_pos.y, tile_idx, false,false,false,Vector2(tile.x+1,tile.y))
 			
+			set_cell(tile_pos.x,tile_pos.y, -1)
 			#Delay until it fills back in abruptly
-			#TODO: The wait time here should actually be about 10 seconds.
 			t.set_wait_time(2.0)
 			t.start()
 			yield(t, "timeout")
@@ -56,14 +59,18 @@ func disintegrateTile(tile_pos):
 			print("fill in. trying to set killZone position to tile_pos %s"%map_to_world(tile_pos,true))
 			
 			
+			
 			var killZone = get_node("../KillZone")
 			killZone.position = map_to_world(tile_pos,true)
+			#Need to reset it from -1
+			set_cell(tile_pos.x,tile_pos.y, tile_idx, false,false,false,Vector2(tile.x,tile.y))
 			
 			#Fill hole back up
-			for i in range(0,6):
+			for i in range(0,5):
 				t.start()
 				yield(t, "timeout")
 				tile = get_cell_autotile_coord(tile_pos.x,tile_pos.y)
 				set_cell(tile_pos.x,tile_pos.y, tile_idx, false,false,false,Vector2(tile.x-1,tile.y))
+			killZone.position = Vector2.ZERO
 		else:
 			print("can't blast out a previously blasted out tile...bitch")
