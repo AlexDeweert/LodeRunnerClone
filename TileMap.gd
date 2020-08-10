@@ -50,7 +50,7 @@ func disintegrateTile(tile_pos):
 			
 			set_cell(tile_pos.x,tile_pos.y, -1)
 			#Delay until it fills back in abruptly
-			t.set_wait_time(2.0)
+			t.set_wait_time(5.0)
 			t.start()
 			yield(t, "timeout")
 			

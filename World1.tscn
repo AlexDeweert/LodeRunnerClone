@@ -464,6 +464,7 @@ position = Vector2( 16, 16 )
 shape = SubResource( 28 )
 
 [node name="Sprite" type="Sprite" parent="KillZone"]
+visible = false
 z_index = 4
 texture = ExtResource( 11 )
 centered = false
