@@ -47,5 +47,6 @@ shape = SubResource( 3 )
 script = ExtResource( 3 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
+current = true
 zoom = Vector2( 0.35, 0.35 )
 smoothing_enabled = true

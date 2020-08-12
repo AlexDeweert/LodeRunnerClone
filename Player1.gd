@@ -141,7 +141,7 @@ func isApproxWithinTileCenter():
 	var result = fmod(position.x,32)
 	result -= 16.0
 	result = abs(result)
-	if result <= 8: return true
+	if result <= 10: return true
 	return false
 
 func _on_Ladder_body_shape_entered(_body_id, body, _body_shape, area_shape):
